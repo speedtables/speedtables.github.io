@@ -1,9 +1,9 @@
 const cacheName = "Harman Family-Speed Tables-0.1.0";
 const contentToCache = [
     "Build/speedtables.github.io.loader.js",
-    "Build/speedtables.github.io.framework.js.br",
-    "Build/speedtables.github.io.data.br",
-    "Build/speedtables.github.io.wasm.br",
+    "Build/speedtables.github.io.framework.js",
+    "Build/speedtables.github.io.data",
+    "Build/speedtables.github.io.wasm",
     "TemplateData/style.css"
 
 ];
