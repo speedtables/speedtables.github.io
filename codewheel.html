@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cryptography Wheel</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #5d687a;
+      --line: #cfd7e3;
+      --soft: #eef4fb;
+      --panel: #ffffff;
+      --accent: #147c72;
+      --accent-dark: #0d5c54;
+      --gold: #f2b84b;
+      --red: #d65a4a;
+      --blue: #2c6fb8;
+      --shadow: 0 16px 36px rgba(23, 32, 51, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #f8fbff 0%, #e9f1f8 100%);
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(8px);
+    }
+
+    .header-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 16px 20px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.45rem, 2vw, 2rem);
+      letter-spacing: 0;
+    }
+
+    .subhead {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .mode-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .mode-tabs button,
+    .small-button,
+    .primary-button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 7px;
+      padding: 9px 12px;
+      cursor: pointer;
+      min-height: 40px;
+    }
+
+    .mode-tabs button[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    main {
+      width: 100%;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 22px 20px 28px;
+      display: grid;
+      grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .wheel-panel,
+    .work-panel,
+    .io-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .wheel-panel {
+      padding: 18px;
+      position: sticky;
+      top: 14px;
+    }
+
+    .wheel-wrap {
+      position: relative;
+      width: min(100%, 390px);
+      aspect-ratio: 1;
+      margin: 0 auto;
+    }
+
+    .wheel-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .outer-letter {
+      font-size: 15px;
+      font-weight: 700;
+      fill: var(--ink);
+    }
+
+    .inner-letter {
+      font-size: 14px;
+      font-weight: 700;
+      fill: #fff;
+    }
+
+    .wheel-label {
+      position: absolute;
+      inset: 39% 28%;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--ink);
+      pointer-events: none;
+    }
+
+    .wheel-label strong {
+      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      line-height: 1;
+    }
+
+    .wheel-controls {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .nudge-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .small-button:hover,
+    .primary-button:hover,
+    .mode-tabs button:hover {
+      border-color: var(--accent);
+    }
+
+    .right-column {
+      display: grid;
+      gap: 16px;
+    }
+
+    .io-panel,
+    .work-panel {
+      padding: 16px;
+    }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    label,
+    .field-label {
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    select,
+    input[type="text"],
+    input[type="number"],
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      padding: 10px 11px;
+      min-height: 42px;
+    }
+
+    textarea {
+      min-height: 118px;
+      resize: vertical;
+      line-height: 1.45;
+      text-transform: uppercase;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.35;
+    }
+
+    .direction {
+      display: inline-grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+    }
+
+    .direction button {
+      border: 0;
+      border-radius: 6px;
+      min-height: 34px;
+      padding: 7px 10px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .direction button[aria-pressed="true"] {
+      background: #fff;
+      color: var(--accent-dark);
+      box-shadow: 0 1px 4px rgba(23, 32, 51, 0.14);
+      font-weight: 700;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .primary-button {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .primary-button:hover {
+      background: var(--accent-dark);
+      border-color: var(--accent-dark);
+    }
+
+    .output {
+      min-height: 86px;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 12px;
+      line-height: 1.5;
+      font-weight: 700;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .work-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 1.08rem;
+      margin: 0;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      max-height: 300px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 560px;
+      background: #fff;
+    }
+
+    th,
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      font-size: 0.92rem;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: var(--soft);
+      color: var(--muted);
+      z-index: 1;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    tbody tr {
+      cursor: pointer;
+    }
+
+    tbody tr:hover,
+    tbody tr.active {
+      background: #fff7e6;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 34px;
+      min-height: 28px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--soft);
+      font-weight: 700;
+    }
+
+    .mode-help {
+      margin: 0 0 14px;
+      padding: 11px 12px;
+      border-left: 4px solid var(--gold);
+      background: #fff9ed;
+      color: #60440d;
+      line-height: 1.4;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 880px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .wheel-panel {
+        position: static;
+      }
+
+      .wheel-wrap {
+        max-width: 350px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .header-inner,
+      main {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .control-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .mode-tabs {
+        width: 100%;
+      }
+
+      .mode-tabs button {
+        flex: 1 1 45%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="header-inner">
+        <div>
+          <h1>Cryptography Wheel</h1>
+          <p class="subhead">Encrypt and decrypt messages using the class cipher disk.</p>
+        </div>
+        <nav class="mode-tabs" aria-label="Cipher mode">
+          <button type="button" data-mode="caesar" aria-pressed="true">Caesar</button>
+          <button type="button" data-mode="changing" aria-pressed="false">Changing Shift</button>
+          <button type="button" data-mode="progressive" aria-pressed="false">Progressive Caesar</button>
+          <button type="button" data-mode="keyword" aria-pressed="false">Keyword</button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="wheel-panel" aria-label="Cipher wheel">
+        <div class="wheel-wrap">
+          <svg class="wheel-svg" viewBox="0 0 420 420" role="img" aria-label="Alphabet cipher wheel">
+            <defs>
+              <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#172033" flood-opacity="0.18"/>
+              </filter>
+            </defs>
+            <circle cx="210" cy="210" r="195" fill="#fefefe" stroke="#aeb9c8" stroke-width="2" filter="url(#softShadow)"/>
+            <circle cx="210" cy="210" r="155" fill="#eef4fb" stroke="#c3cfdd" stroke-width="2"/>
+            <g id="outerLetters"></g>
+            <g id="innerWheel">
+              <circle cx="210" cy="210" r="155" fill="#147c72" stroke="#0d5c54" stroke-width="3"/>
+              <g id="innerLetters"></g>
+            </g>
+            <line x1="210" y1="16" x2="210" y2="63" stroke="#d65a4a" stroke-width="5" stroke-linecap="round"/>
+          </svg>
+          <div class="wheel-label">
+            <div>
+              <strong id="wheelSetting">A -> A</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="wheel-controls">
+          <div class="nudge-row">
+            <button class="small-button" type="button" id="turnBack">Turn back</button>
+            <button class="small-button" type="button" id="turnForward">Turn forward</button>
+          </div>
+          <p class="hint" id="wheelHint">The wheel shows the shift used for the selected letter in the working table.</p>
+        </div>
+      </section>
+
+      <div class="right-column">
+        <section class="io-panel" aria-label="Cipher controls">
+          <p class="mode-help" id="modeHelp"></p>
+
+          <div class="control-grid">
+            <div class="field">
+              <span class="field-label">Action</span>
+              <div class="direction" role="group" aria-label="Action">
+                <button type="button" data-direction="encrypt" aria-pressed="true">Encrypt</button>
+                <button type="button" data-direction="decrypt" aria-pressed="false">Decrypt</button>
+              </div>
+            </div>
+
+            <div class="field mode-setting" data-setting="caesar">
+              <label for="caesarShift">Caesar shift</label>
+              <select id="caesarShift"></select>
+            </div>
+
+            <div class="field mode-setting hidden" data-setting="progressive">
+              <label for="startLetter">Starting setting</label>
+              <select id="startLetter"></select>
+            </div>
+
+            <div class="field mode-setting hidden" data-setting="keyword">
+              <label for="keyword">Keyword</label>
+              <input id="keyword" type="text" value="YEARSIX" maxlength="20" autocomplete="off">
+            </div>
+
+            <div class="field mode-setting hidden" data-setting="variable">
+              <label for="resetMode">Counting</label>
+              <select id="resetMode">
+                <option value="message">Keep counting across the message</option>
+                <option value="word">Restart at each word</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="message">Message</label>
+            <textarea id="message" spellcheck="false">CODES ARE IMPORTANT</textarea>
+            <p class="hint">Letters are changed. Spaces are kept. Other punctuation is ignored in the working table.</p>
+          </div>
+
+          <div class="actions">
+            <button class="primary-button" type="button" id="runCipher">Run cipher</button>
+            <button class="small-button" type="button" id="swapText">Use result as message</button>
+            <button class="small-button" type="button" id="clearText">Clear</button>
+          </div>
+
+          <div class="field" style="margin-top: 14px;">
+            <label for="output">Result</label>
+            <div class="output" id="output" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <section class="work-panel" aria-label="Working table">
+          <div class="work-header">
+            <h2>Working</h2>
+            <span class="hint" id="workingSummary"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Input</th>
+                  <th>A maps to</th>
+                  <th>Shift</th>
+                  <th>Output</th>
+                </tr>
+              </thead>
+              <tbody id="workRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const modeHelp = {
+      caesar: "Caesar uses one wheel setting for the whole message. Example: A maps to D means a shift of 3.",
+      changing: "Changing shift starts at 1, then 2, then 3, and keeps increasing for each letter.",
+      progressive: "Progressive Caesar starts at a chosen wheel setting, then turns forward one step after each letter.",
+      keyword: "Keyword shift uses each keyword letter as the wheel setting. With YEARSIX, the first letter uses A maps to Y, then A maps to E, and so on."
+    };
+
+    const state = {
+      mode: "caesar",
+      direction: "encrypt",
+      selectedRow: 0,
+      displayShift: 0
+    };
+
+    const els = {
+      outerLetters: document.getElementById("outerLetters"),
+      innerLetters: document.getElementById("innerLetters"),
+      innerWheel: document.getElementById("innerWheel"),
+      wheelSetting: document.getElementById("wheelSetting"),
+      modeHelp: document.getElementById("modeHelp"),
+      caesarShift: document.getElementById("caesarShift"),
+      startLetter: document.getElementById("startLetter"),
+      keyword: document.getElementById("keyword"),
+      resetMode: document.getElementById("resetMode"),
+      message: document.getElementById("message"),
+      output: document.getElementById("output"),
+      workRows: document.getElementById("workRows"),
+      workingSummary: document.getElementById("workingSummary")
+    };
+
+    function letterAt(index) {
+      return alphabet[((index % 26) + 26) % 26];
+    }
+
+    function cleanLetters(value) {
+      return value.toUpperCase().replace(/[^A-Z]/g, "");
+    }
+
+    function createLetterText(parent, letter, radius, className, angleOffset = 0) {
+      const index = alphabet.indexOf(letter);
+      const angle = ((index / 26) * 360 - 90 + angleOffset) * Math.PI / 180;
+      const x = 210 + Math.cos(angle) * radius;
+      const y = 210 + Math.sin(angle) * radius;
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.setAttribute("x", x.toFixed(2));
+      text.setAttribute("y", y.toFixed(2));
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("dominant-baseline", "central");
+      text.setAttribute("class", className);
+      text.setAttribute("transform", `rotate(${(index / 26) * 360 + angleOffset} ${x.toFixed(2)} ${y.toFixed(2)})`);
+      text.textContent = letter;
+      parent.appendChild(text);
+    }
+
+    function buildWheel() {
+      alphabet.split("").forEach(letter => {
+        createLetterText(els.outerLetters, letter, 174, "outer-letter");
+        createLetterText(els.innerLetters, letter, 134, "inner-letter");
+      });
+    }
+
+    function buildSelects() {
+      alphabet.split("").forEach((letter, index) => {
+        const shiftOption = document.createElement("option");
+        shiftOption.value = index;
+        shiftOption.textContent = `${index}: A maps to ${letter}`;
+        els.caesarShift.appendChild(shiftOption);
+
+        const startOption = document.createElement("option");
+        startOption.value = index;
+        startOption.textContent = `A maps to ${letter}`;
+        els.startLetter.appendChild(startOption);
+      });
+      els.caesarShift.value = "3";
+      els.startLetter.value = "3";
+    }
+
+    function updateWheel(shift) {
+      state.displayShift = ((shift % 26) + 26) % 26;
+      const degrees = state.displayShift * (360 / 26);
+      els.innerWheel.setAttribute("transform", `rotate(${degrees} 210 210)`);
+      els.wheelSetting.textContent = `A -> ${letterAt(state.displayShift)}`;
+    }
+
+    function getShiftForLetter(letterCount, wordLetterCount) {
+      if (state.mode === "caesar") {
+        return Number(els.caesarShift.value);
+      }
+
+      if (state.mode === "changing") {
+        const position = els.resetMode.value === "word" ? wordLetterCount : letterCount;
+        return position % 26;
+      }
+
+      if (state.mode === "progressive") {
+        const start = Number(els.startLetter.value);
+        const position = els.resetMode.value === "word" ? wordLetterCount : letterCount;
+        return (start + position - 1) % 26;
+      }
+
+      const keyword = cleanLetters(els.keyword.value) || "A";
+      const keyLetter = keyword[(letterCount - 1) % keyword.length];
+      return alphabet.indexOf(keyLetter);
+    }
+
+    function transformLetter(letter, shift) {
+      const index = alphabet.indexOf(letter);
+      const amount = state.direction === "encrypt" ? shift : -shift;
+      return letterAt(index + amount);
+    }
+
+    function runCipher() {
+      const input = els.message.value.toUpperCase();
+      let result = "";
+      let letterCount = 0;
+      let wordLetterCount = 0;
+      const rows = [];
+
+      for (const char of input) {
+        if (/[A-Z]/.test(char)) {
+          letterCount += 1;
+          wordLetterCount += 1;
+          const shift = getShiftForLetter(letterCount, wordLetterCount);
+          const output = transformLetter(char, shift);
+          result += output;
+          rows.push({
+            number: letterCount,
+            input: char,
+            mapsTo: letterAt(shift),
+            shift,
+            output
+          });
+        } else if (char === " ") {
+          result += " ";
+          wordLetterCount = 0;
+        }
+      }
+
+      els.output.textContent = result;
+      renderRows(rows);
+      state.selectedRow = Math.min(state.selectedRow, Math.max(rows.length - 1, 0));
+      updateWheel(rows[state.selectedRow] ? rows[state.selectedRow].shift : 0);
+      els.workingSummary.textContent = `${rows.length} letters`;
+    }
+
+    function renderRows(rows) {
+      els.workRows.innerHTML = "";
+      rows.forEach((row, index) => {
+        const tr = document.createElement("tr");
+        tr.className = index === state.selectedRow ? "active" : "";
+        tr.innerHTML = `
+          <td>${row.number}</td>
+          <td><span class="pill">${row.input}</span></td>
+          <td><span class="pill">A -> ${row.mapsTo}</span></td>
+          <td>${row.shift}</td>
+          <td><span class="pill">${row.output}</span></td>
+        `;
+        tr.addEventListener("click", () => {
+          state.selectedRow = index;
+          updateWheel(row.shift);
+          [...els.workRows.children].forEach(child => child.classList.remove("active"));
+          tr.classList.add("active");
+        });
+        els.workRows.appendChild(tr);
+      });
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      state.selectedRow = 0;
+      document.querySelectorAll("[data-mode]").forEach(button => {
+        button.setAttribute("aria-pressed", String(button.dataset.mode === mode));
+      });
+      document.querySelectorAll(".mode-setting").forEach(field => {
+        const setting = field.dataset.setting;
+        const show =
+          setting === mode ||
+          (setting === "variable" && (mode === "changing" || mode === "progressive"));
+        field.classList.toggle("hidden", !show);
+      });
+      els.modeHelp.textContent = modeHelp[mode];
+      runCipher();
+    }
+
+    function setDirection(direction) {
+      state.direction = direction;
+      document.querySelectorAll("[data-direction]").forEach(button => {
+        button.setAttribute("aria-pressed", String(button.dataset.direction === direction));
+      });
+      runCipher();
+    }
+
+    function nudgeWheel(amount) {
+      if (state.mode === "caesar") {
+        els.caesarShift.value = String((Number(els.caesarShift.value) + amount + 26) % 26);
+      } else if (state.mode === "progressive") {
+        els.startLetter.value = String((Number(els.startLetter.value) + amount + 26) % 26);
+      } else if (state.mode === "keyword") {
+        const current = cleanLetters(els.keyword.value) || "A";
+        const first = letterAt(alphabet.indexOf(current[0]) + amount);
+        els.keyword.value = first + current.slice(1);
+      }
+      runCipher();
+    }
+
+    document.querySelectorAll("[data-mode]").forEach(button => {
+      button.addEventListener("click", () => setMode(button.dataset.mode));
+    });
+
+    document.querySelectorAll("[data-direction]").forEach(button => {
+      button.addEventListener("click", () => setDirection(button.dataset.direction));
+    });
+
+    document.getElementById("runCipher").addEventListener("click", runCipher);
+    document.getElementById("turnBack").addEventListener("click", () => nudgeWheel(-1));
+    document.getElementById("turnForward").addEventListener("click", () => nudgeWheel(1));
+    document.getElementById("swapText").addEventListener("click", () => {
+      els.message.value = els.output.textContent;
+      runCipher();
+    });
+    document.getElementById("clearText").addEventListener("click", () => {
+      els.message.value = "";
+      runCipher();
+      els.message.focus();
+    });
+
+    [els.caesarShift, els.startLetter, els.keyword, els.resetMode, els.message].forEach(input => {
+      input.addEventListener("input", runCipher);
+      input.addEventListener("change", runCipher);
+    });
+
+    buildWheel();
+    buildSelects();
+    setMode("caesar");
+  </script>
+</body>
+</html>
