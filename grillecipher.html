@@ -1,0 +1,1177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Turning Grille Cipher</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #5d687a;
+      --line: #cfd7e3;
+      --soft: #eef4fb;
+      --panel: #ffffff;
+      --accent: #147c72;
+      --accent-dark: #0d5c54;
+      --gold: #f2b84b;
+      --red: #d65a4a;
+      --closed: #565f6d;
+      --shadow: 0 16px 36px rgba(23, 32, 51, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #f8fbff 0%, #e9f1f8 100%);
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(8px);
+    }
+
+    .header-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 16px 20px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .mode-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.45rem, 2vw, 2rem);
+      letter-spacing: 0;
+    }
+
+    .subhead {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    main {
+      width: 100%;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 22px 20px 28px;
+      display: grid;
+      grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    main.demo-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .grille-panel,
+    .work-panel,
+    .io-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .grille-panel {
+      padding: 18px;
+      position: sticky;
+      top: 14px;
+    }
+
+    .right-column {
+      display: grid;
+      gap: 16px;
+    }
+
+    .io-panel,
+    .work-panel {
+      padding: 16px;
+    }
+
+    h2 {
+      font-size: 1.08rem;
+      margin: 0;
+    }
+
+    .work-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    label,
+    .field-label {
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    select,
+    input[type="text"],
+    input[type="number"],
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      padding: 10px 11px;
+      min-height: 42px;
+    }
+
+    textarea {
+      min-height: 118px;
+      resize: vertical;
+      line-height: 1.45;
+      text-transform: uppercase;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.35;
+    }
+
+    .direction {
+      display: inline-grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+    }
+
+    .direction button {
+      border: 0;
+      border-radius: 6px;
+      min-height: 34px;
+      padding: 7px 10px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .direction button[aria-pressed="true"] {
+      background: #fff;
+      color: var(--accent-dark);
+      box-shadow: 0 1px 4px rgba(23, 32, 51, 0.14);
+      font-weight: 700;
+    }
+
+    .small-button,
+    .primary-button,
+    .mode-tabs button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 7px;
+      padding: 9px 12px;
+      cursor: pointer;
+      min-height: 40px;
+    }
+
+    .small-button:hover,
+    .primary-button:hover,
+    .mode-tabs button:hover {
+      border-color: var(--accent);
+    }
+
+    .mode-tabs button[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .primary-button {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .primary-button:hover {
+      background: var(--accent-dark);
+      border-color: var(--accent-dark);
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .output {
+      min-height: 86px;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 12px;
+      line-height: 1.5;
+      font-weight: 700;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .mode-help {
+      margin: 0 0 14px;
+      padding: 11px 12px;
+      border-left: 4px solid var(--gold);
+      background: #fff9ed;
+      color: #60440d;
+      line-height: 1.4;
+    }
+
+    .grille-wrap {
+      width: min(100%, 390px);
+      margin: 0 auto;
+      display: grid;
+      gap: 12px;
+    }
+
+    .grille-grid,
+    .group-grid {
+      display: grid;
+      aspect-ratio: 1;
+      border: 3px solid var(--ink);
+      background: var(--ink);
+      gap: 2px;
+      user-select: none;
+    }
+
+    .cell {
+      border: 0;
+      border-radius: 0;
+      min-width: 0;
+      min-height: 0;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      background: var(--closed);
+      color: var(--ink);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .cell.open {
+      background: #fff;
+    }
+
+    .cell.center {
+      background: #303846;
+      color: #fff;
+      cursor: not-allowed;
+    }
+
+    .cell.invalid {
+      box-shadow: inset 0 0 0 3px var(--red);
+    }
+
+    .cell:hover:not(.center) {
+      outline: 3px solid var(--gold);
+      outline-offset: -3px;
+    }
+
+    .group-grid {
+      border-width: 2px;
+      gap: 1px;
+    }
+
+    .group-cell {
+      display: grid;
+      place-items: center;
+      background: var(--closed);
+      color: var(--ink);
+      min-height: 30px;
+      font-weight: 700;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .group-cell.open {
+      background: #fff;
+    }
+
+    .group-cell.center {
+      background: #303846;
+      color: #fff;
+      cursor: not-allowed;
+    }
+
+    .group-cell.invalid {
+      box-shadow: inset 0 0 0 3px var(--red);
+    }
+
+    .status {
+      padding: 10px 12px;
+      border-radius: 7px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      font-weight: 700;
+    }
+
+    .status.good {
+      background: #e8f6f2;
+      border-color: #9fd3c8;
+      color: var(--accent-dark);
+    }
+
+    .status.bad {
+      background: #fff0ed;
+      border-color: #efb4aa;
+      color: #8e2e24;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      max-height: 270px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 520px;
+      background: #fff;
+    }
+
+    th,
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      font-size: 0.92rem;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: var(--soft);
+      color: var(--muted);
+      z-index: 1;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .demo-stack {
+      display: grid;
+      gap: 28px;
+    }
+
+    .demo-pair {
+      display: grid;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .demo-turns {
+      display: grid;
+      gap: 24px;
+    }
+
+    .demo-card {
+      display: grid;
+      grid-template-columns: minmax(190px, 260px) minmax(280px, 1fr);
+      gap: 24px;
+      align-items: center;
+    }
+
+    .demo-card h3 {
+      margin: 0;
+      font-size: clamp(1.25rem, 2.4vw, 2rem);
+      line-height: 1.2;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+      aspect-ratio: 1;
+      border: 3px solid var(--ink);
+      background: var(--ink);
+      gap: 2px;
+      width: min(52vw, 430px);
+      max-width: 430px;
+    }
+
+    .demo-cell {
+      display: grid;
+      place-items: center;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 700;
+      font-size: clamp(1.35rem, 3vw, 2.1rem);
+      min-width: 0;
+      min-height: 0;
+      line-height: 1;
+    }
+
+    .demo-cipher {
+      margin: 8px 0 0;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fafc;
+      font-family: "Courier New", monospace;
+      font-size: clamp(1.35rem, 3vw, 2.2rem);
+      font-weight: 700;
+      letter-spacing: 0;
+      word-break: break-word;
+    }
+
+    .demo-grid-large {
+      width: min(58vw, 500px);
+      max-width: 500px;
+    }
+
+    .demo-cell.closed {
+      background: var(--closed);
+      color: transparent;
+    }
+
+    .demo-cell.center {
+      background: #303846;
+      color: #fff;
+    }
+
+    .demo-cell.open {
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 880px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .grille-panel {
+        position: static;
+      }
+
+      .grille-wrap {
+        max-width: 350px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .header-inner,
+      main {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .control-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .demo-pair,
+      .demo-turns {
+        grid-template-columns: 1fr;
+      }
+
+      .demo-card {
+        grid-template-columns: 1fr;
+      }
+
+      .demo-grid,
+      .demo-grid-large {
+        width: 100%;
+        max-width: 420px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="header-inner">
+        <div>
+          <h1>Turning Grille Cipher</h1>
+          <p class="subhead">Build a grille, then encrypt or decrypt by rotating it four times.</p>
+        </div>
+        <nav class="mode-tabs" aria-label="Page mode">
+          <button type="button" data-tab="cipher" aria-pressed="true">Cipher Tool</button>
+          <button type="button" data-tab="helper" aria-pressed="false">Valid Grille Helper</button>
+          <button type="button" data-tab="demo" aria-pressed="false">Activity Demo</button>
+        </nav>
+      </div>
+    </header>
+
+    <main id="pageMain">
+      <section class="grille-panel" data-left-panel aria-label="Clickable grille">
+        <div class="grille-wrap">
+          <div class="control-grid">
+            <div class="field">
+              <label for="gridSize">Grid size</label>
+              <input id="gridSize" type="number" min="2" max="12" value="5">
+            </div>
+            <div class="field">
+              <label for="paddingLetter">Filler</label>
+              <input id="paddingLetter" type="text" maxlength="1" value="X" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="fillerMode">Filler mode</label>
+              <select id="fillerMode">
+                <option value="same">Same filler letter</option>
+                <option value="random" selected>Filler letter, then random letters</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="status" class="status bad">Choose one open square from each number group.</div>
+          <div id="grilleGrid" class="grille-grid" aria-label="Click squares to open or close them"></div>
+
+          <div class="actions">
+            <button class="primary-button" type="button" id="generateValid">Generate valid grille</button>
+            <button class="small-button" type="button" id="clearGrille">Clear</button>
+            <button class="small-button" type="button" id="invertGrille">Invert</button>
+          </div>
+
+          <p class="hint">White squares are open holes. Shaded squares are closed. For odd sizes, the centre square is not used.</p>
+        </div>
+      </section>
+
+      <div class="right-column" data-tab-panel="cipher">
+        <section class="io-panel" aria-label="Cipher controls">
+          <p class="mode-help">Type a message, choose encrypt or decrypt, and use the grille on the left. The result is read row by row, skipping the centre square on odd grids.</p>
+
+          <div class="control-grid">
+            <div class="field">
+              <span class="field-label">Action</span>
+              <div class="direction" role="group" aria-label="Action">
+                <button type="button" data-direction="encrypt" aria-pressed="true">Encrypt</button>
+                <button type="button" data-direction="decrypt" aria-pressed="false">Decrypt</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="blockMode">Blocks</label>
+              <select id="blockMode">
+                <option value="auto">Use as many blocks as needed</option>
+                <option value="single">Use one block only</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="message">Message</label>
+            <textarea id="message" spellcheck="false">GRILLES TURN FOUR TIMES</textarea>
+            <p class="hint">Letters are used. Spaces and punctuation are ignored for the grille.</p>
+          </div>
+
+          <div class="actions">
+            <button class="primary-button" type="button" id="runCipher">Run cipher</button>
+            <button class="small-button" type="button" id="swapText">Use result as message</button>
+            <button class="small-button" type="button" id="clearText">Clear</button>
+          </div>
+
+          <div class="field" style="margin-top: 14px;">
+            <label for="output">Result</label>
+            <div class="output" id="output" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <section class="work-panel" aria-label="Blocks">
+          <div class="work-header">
+            <h2>Blocks</h2>
+            <span class="hint" id="blockSummary"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Input block</th>
+                  <th>Output block</th>
+                </tr>
+              </thead>
+              <tbody id="blockRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <div class="right-column hidden" data-tab-panel="helper">
+        <section class="work-panel" aria-label="Valid grille helper">
+          <div class="work-header">
+            <h2>Valid Grille Helper</h2>
+            <span class="hint" id="groupSummary"></span>
+          </div>
+          <p class="hint">Squares with the same number are the same place after rotation. Click squares here to open or close them. A valid grille has exactly one open square from each number group.</p>
+          <div id="groupGrid" class="group-grid" aria-label="Rotation group helper"></div>
+        </section>
+      </div>
+
+      <div class="right-column hidden" data-tab-panel="demo">
+        <section class="work-panel" aria-label="Activity demonstration">
+          <div class="work-header">
+            <h2>Activity Demo</h2>
+            <span class="hint">Default example</span>
+          </div>
+          <div class="demo-stack">
+            <p class="mode-help">Copy the cipher text into the grid row by row, skipping the centre square. Then place the grille over the grid and rotate it clockwise to reveal the message.</p>
+            <div class="demo-pair">
+              <div class="demo-card">
+                <h3>Step 1<br>Use this valid grille pattern</h3>
+                <div id="demoPatternGrid" class="demo-grid"></div>
+              </div>
+            </div>
+
+            <div>
+              <strong>Cipher text</strong>
+              <div class="demo-cipher">WUEXQSVZRMJOENRVSRYHOEKT</div>
+            </div>
+
+            <div class="demo-pair">
+              <div class="demo-card">
+                <h3>Step 2<br>Write the cipher text row by row</h3>
+                <div id="demoCipherGrid" class="demo-grid"></div>
+              </div>
+            </div>
+
+            <div>
+              <h3>Step 3: Rotate clockwise to reveal six letters at a time</h3>
+              <div id="demoTurns" class="demo-turns"></div>
+            </div>
+
+            <div>
+              <strong>Plaintext</strong>
+              <div class="demo-cipher">EVERY TURN SHOWS MORE</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const state = {
+      size: 5,
+      direction: "encrypt",
+      open: new Set()
+    };
+
+    const els = {
+      gridSize: document.getElementById("gridSize"),
+      paddingLetter: document.getElementById("paddingLetter"),
+      fillerMode: document.getElementById("fillerMode"),
+      blockMode: document.getElementById("blockMode"),
+      message: document.getElementById("message"),
+      output: document.getElementById("output"),
+      grilleGrid: document.getElementById("grilleGrid"),
+      groupGrid: document.getElementById("groupGrid"),
+      status: document.getElementById("status"),
+      groupSummary: document.getElementById("groupSummary"),
+      blockSummary: document.getElementById("blockSummary"),
+      blockRows: document.getElementById("blockRows")
+    };
+
+    function key(row, col) {
+      return `${row},${col}`;
+    }
+
+    function rotateCell(row, col, size) {
+      return [col, size - 1 - row];
+    }
+
+    function isCenter(row, col) {
+      return state.size % 2 === 1 && row === Math.floor(state.size / 2) && col === Math.floor(state.size / 2);
+    }
+
+    function cleanLetters(value) {
+      return value.toUpperCase().replace(/[^A-Z]/g, "");
+    }
+
+    function getGroups() {
+      const seen = new Set();
+      const groups = [];
+      const groupByCell = new Map();
+
+      for (let row = 0; row < state.size; row += 1) {
+        for (let col = 0; col < state.size; col += 1) {
+          if (isCenter(row, col)) continue;
+          const start = key(row, col);
+          if (seen.has(start)) continue;
+
+          const cells = [];
+          let current = [row, col];
+          for (let turn = 0; turn < 4; turn += 1) {
+            const cellKey = key(current[0], current[1]);
+            if (!cells.some(cell => key(cell[0], cell[1]) === cellKey)) {
+              cells.push(current);
+            }
+            current = rotateCell(current[0], current[1], state.size);
+          }
+
+          cells.forEach(cell => seen.add(key(cell[0], cell[1])));
+          const groupNumber = groups.length + 1;
+          cells.forEach(cell => groupByCell.set(key(cell[0], cell[1]), groupNumber));
+          groups.push(cells);
+        }
+      }
+
+      return { groups, groupByCell };
+    }
+
+    function getCapacity() {
+      return state.size * state.size - (state.size % 2 === 1 ? 1 : 0);
+    }
+
+    function getOpenCounts() {
+      const { groups } = getGroups();
+      return groups.map(cells => cells.filter(([row, col]) => state.open.has(key(row, col))).length);
+    }
+
+    function isValidGrille() {
+      const counts = getOpenCounts();
+      return counts.length > 0 && counts.every(count => count === 1);
+    }
+
+    function renderGrille() {
+      const { groupByCell } = getGroups();
+      const counts = getOpenCounts();
+      els.grilleGrid.style.gridTemplateColumns = `repeat(${state.size}, 1fr)`;
+      els.grilleGrid.innerHTML = "";
+
+      for (let row = 0; row < state.size; row += 1) {
+        for (let col = 0; col < state.size; col += 1) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "cell";
+          button.setAttribute("aria-label", `Row ${row + 1}, column ${col + 1}`);
+
+          if (isCenter(row, col)) {
+            button.classList.add("center");
+            button.textContent = "X";
+            button.disabled = true;
+          } else {
+            const cellKey = key(row, col);
+            const group = groupByCell.get(cellKey);
+            const count = counts[group - 1];
+            button.textContent = "";
+            button.classList.toggle("open", state.open.has(cellKey));
+            button.classList.toggle("invalid", count > 1);
+            button.addEventListener("click", () => {
+              if (state.open.has(cellKey)) {
+                state.open.delete(cellKey);
+              } else {
+                state.open.add(cellKey);
+              }
+              renderAll();
+            });
+          }
+
+          els.grilleGrid.appendChild(button);
+        }
+      }
+    }
+
+    function renderGroupGrid() {
+      const { groupByCell } = getGroups();
+      els.groupGrid.style.gridTemplateColumns = `repeat(${state.size}, 1fr)`;
+      els.groupGrid.innerHTML = "";
+
+      for (let row = 0; row < state.size; row += 1) {
+        for (let col = 0; col < state.size; col += 1) {
+          const div = document.createElement(isCenter(row, col) ? "div" : "button");
+          div.className = "group-cell";
+          if (isCenter(row, col)) {
+            div.classList.add("center");
+            div.textContent = "X";
+          } else {
+            const cellKey = key(row, col);
+            const group = groupByCell.get(cellKey);
+            const counts = getOpenCounts();
+            div.type = "button";
+            div.textContent = group;
+            div.classList.toggle("open", state.open.has(cellKey));
+            div.classList.toggle("invalid", counts[group - 1] > 1);
+            div.addEventListener("click", () => {
+              if (state.open.has(cellKey)) {
+                state.open.delete(cellKey);
+              } else {
+                state.open.add(cellKey);
+              }
+              renderAll();
+            });
+          }
+          els.groupGrid.appendChild(div);
+        }
+      }
+    }
+
+    function updateStatus() {
+      const counts = getOpenCounts();
+      const openCount = [...state.open].length;
+      const valid = isValidGrille();
+      els.status.className = `status ${valid ? "good" : "bad"}`;
+      els.status.textContent = valid
+        ? `Valid grille: ${openCount} open squares.`
+        : `Not valid yet: choose exactly one open square from each of the ${counts.length} groups.`;
+      els.groupSummary.textContent = `${counts.length} groups`;
+    }
+
+    function rotateOpenCells(turns) {
+      let cells = [...state.open].map(item => item.split(",").map(Number));
+      for (let turn = 0; turn < turns; turn += 1) {
+        cells = cells.map(([row, col]) => rotateCell(row, col, state.size));
+      }
+      return cells;
+    }
+
+    function rowWiseCells() {
+      const cells = [];
+      for (let row = 0; row < state.size; row += 1) {
+        for (let col = 0; col < state.size; col += 1) {
+          if (!isCenter(row, col)) cells.push([row, col]);
+        }
+      }
+      return cells;
+    }
+
+    function encryptBlock(block) {
+      const grid = Array.from({ length: state.size }, () => Array(state.size).fill(""));
+      let index = 0;
+
+      for (let turn = 0; turn < 4; turn += 1) {
+        const cells = rotateOpenCells(turn).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+        cells.forEach(([row, col]) => {
+          grid[row][col] = block[index] || "";
+          index += 1;
+        });
+      }
+
+      return rowWiseCells().map(([row, col]) => grid[row][col]).join("");
+    }
+
+    function decryptBlock(block) {
+      const grid = Array.from({ length: state.size }, () => Array(state.size).fill(""));
+      rowWiseCells().forEach(([row, col], index) => {
+        grid[row][col] = block[index] || "";
+      });
+
+      let output = "";
+      for (let turn = 0; turn < 4; turn += 1) {
+        const cells = rotateOpenCells(turn).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+        cells.forEach(([row, col]) => {
+          output += grid[row][col] || "";
+        });
+      }
+      return output;
+    }
+
+    function makeBlocks(text) {
+      const capacity = getCapacity();
+      const clean = cleanLetters(text);
+      const blockCount = els.blockMode.value === "single" ? 1 : Math.max(1, Math.ceil(clean.length / capacity));
+      const filler = cleanLetters(els.paddingLetter.value)[0] || "X";
+      const blocks = [];
+
+      for (let i = 0; i < blockCount; i += 1) {
+        const start = i * capacity;
+        let block = clean.slice(start, start + capacity);
+        if (state.direction === "encrypt") {
+          block = block + makeFiller(capacity - block.length, filler);
+        }
+        blocks.push(block);
+      }
+
+      return blocks;
+    }
+
+    function randomLetter() {
+      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      return alphabet[Math.floor(Math.random() * alphabet.length)];
+    }
+
+    function makeFiller(count, filler) {
+      if (count <= 0) return "";
+      if (els.fillerMode.value === "same") {
+        return filler.repeat(count);
+      }
+
+      let output = filler;
+      while (output.length < count) {
+        output += randomLetter();
+      }
+      return output;
+    }
+
+    function runCipher() {
+      if (!isValidGrille()) {
+        els.output.textContent = "Make a valid grille first.";
+        renderBlocks([]);
+        return;
+      }
+
+      const blocks = makeBlocks(els.message.value);
+      const outputBlocks = blocks.map(block => (
+        state.direction === "encrypt" ? encryptBlock(block) : decryptBlock(block)
+      ));
+
+      els.output.textContent = outputBlocks.join(" ");
+      renderBlocks(blocks.map((block, index) => ({
+        input: block,
+        output: outputBlocks[index]
+      })));
+    }
+
+    function renderBlocks(rows) {
+      els.blockRows.innerHTML = "";
+      rows.forEach((row, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td><code>${row.input}</code></td>
+          <td><code>${row.output}</code></td>
+        `;
+        els.blockRows.appendChild(tr);
+      });
+      els.blockSummary.textContent = rows.length ? `${rows.length} block${rows.length === 1 ? "" : "s"}` : "";
+    }
+
+    function generateValidGrille() {
+      state.open.clear();
+      const { groups } = getGroups();
+      groups.forEach(cells => {
+        const choice = cells[Math.floor(Math.random() * cells.length)];
+        state.open.add(key(choice[0], choice[1]));
+      });
+      renderAll();
+      runCipher();
+    }
+
+    function clearGrille() {
+      state.open.clear();
+      renderAll();
+    }
+
+    function invertGrille() {
+      const next = new Set();
+      for (let row = 0; row < state.size; row += 1) {
+        for (let col = 0; col < state.size; col += 1) {
+          if (!isCenter(row, col) && !state.open.has(key(row, col))) {
+            next.add(key(row, col));
+          }
+        }
+      }
+      state.open = next;
+      renderAll();
+    }
+
+    function setSize(size) {
+      state.size = Math.max(2, Math.min(12, Number(size) || 5));
+      els.gridSize.value = String(state.size);
+      state.open.clear();
+      renderAll();
+    }
+
+    function setDirection(direction) {
+      state.direction = direction;
+      document.querySelectorAll("[data-direction]").forEach(button => {
+        button.setAttribute("aria-pressed", String(button.dataset.direction === direction));
+      });
+      runCipher();
+    }
+
+    function setTab(tab) {
+      document.querySelectorAll("[data-tab]").forEach(button => {
+        button.setAttribute("aria-pressed", String(button.dataset.tab === tab));
+      });
+      document.querySelectorAll("[data-tab-panel]").forEach(panel => {
+        panel.classList.toggle("hidden", panel.dataset.tabPanel !== tab);
+      });
+      document.querySelector("[data-left-panel]").classList.toggle("hidden", tab === "demo");
+      document.getElementById("pageMain").classList.toggle("demo-layout", tab === "demo");
+    }
+
+    const demo = {
+      size: 5,
+      plain: "EVERYTURNSHOWSMOREXQZJVK",
+      cipher: "WUEXQSVZRMJOENRVSRYHOEKT",
+      holes: [
+        [0, 2],
+        [1, 1],
+        [2, 3],
+        [3, 0],
+        [3, 4],
+        [4, 4]
+      ]
+    };
+
+    function demoKey(row, col) {
+      return `${row},${col}`;
+    }
+
+    function demoRotateCell(row, col) {
+      return [col, demo.size - 1 - row];
+    }
+
+    function demoRotateHoles(turns) {
+      let cells = demo.holes.map(cell => [...cell]);
+      for (let turn = 0; turn < turns; turn += 1) {
+        cells = cells.map(([row, col]) => demoRotateCell(row, col));
+      }
+      return cells;
+    }
+
+    function demoCipherGrid() {
+      const grid = Array.from({ length: demo.size }, () => Array(demo.size).fill(""));
+      let index = 0;
+      for (let row = 0; row < demo.size; row += 1) {
+        for (let col = 0; col < demo.size; col += 1) {
+          if (row === 2 && col === 2) {
+            grid[row][col] = "X";
+          } else {
+            grid[row][col] = demo.cipher[index];
+            index += 1;
+          }
+        }
+      }
+      return grid;
+    }
+
+    function makeDemoCell(text, className) {
+      const cell = document.createElement("div");
+      cell.className = `demo-cell ${className || ""}`.trim();
+      cell.textContent = text || "";
+      return cell;
+    }
+
+    function renderDemoGrid(container, options) {
+      container.innerHTML = "";
+      const grid = demoCipherGrid();
+      const open = new Set((options.openCells || []).map(([row, col]) => demoKey(row, col)));
+
+      for (let row = 0; row < demo.size; row += 1) {
+        for (let col = 0; col < demo.size; col += 1) {
+          if (row === 2 && col === 2) {
+            container.appendChild(makeDemoCell("X", "center"));
+          } else if (options.kind === "pattern") {
+            container.appendChild(makeDemoCell("", open.has(demoKey(row, col)) ? "open" : "closed"));
+          } else if (options.kind === "cipher") {
+            container.appendChild(makeDemoCell(grid[row][col], ""));
+          } else {
+            const isOpen = open.has(demoKey(row, col));
+            container.appendChild(makeDemoCell(isOpen ? grid[row][col] : "", isOpen ? "open" : "closed"));
+          }
+        }
+      }
+    }
+
+    function renderDemo() {
+      const patternGrid = document.getElementById("demoPatternGrid");
+      const cipherGrid = document.getElementById("demoCipherGrid");
+      const turns = document.getElementById("demoTurns");
+      if (!patternGrid || !cipherGrid || !turns) return;
+
+      renderDemoGrid(patternGrid, { kind: "pattern", openCells: demo.holes });
+      renderDemoGrid(cipherGrid, { kind: "cipher" });
+      turns.innerHTML = "";
+
+      for (let turn = 0; turn < 4; turn += 1) {
+        const openCells = demoRotateHoles(turn).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+        const letters = demo.plain.slice(turn * 6, turn * 6 + 6);
+        const card = document.createElement("div");
+        card.className = "demo-card";
+        card.innerHTML = `<h3>Turn ${turn + 1}: ${letters}</h3>`;
+        const grid = document.createElement("div");
+        grid.className = "demo-grid demo-grid-large";
+        renderDemoGrid(grid, { kind: "reveal", openCells });
+        card.appendChild(grid);
+        turns.appendChild(card);
+      }
+    }
+
+    function renderAll() {
+      renderGrille();
+      renderGroupGrid();
+      updateStatus();
+      runCipher();
+    }
+
+    document.querySelectorAll("[data-direction]").forEach(button => {
+      button.addEventListener("click", () => setDirection(button.dataset.direction));
+    });
+
+    document.querySelectorAll("[data-tab]").forEach(button => {
+      button.addEventListener("click", () => setTab(button.dataset.tab));
+    });
+
+    els.gridSize.addEventListener("change", () => setSize(els.gridSize.value));
+    els.paddingLetter.addEventListener("input", runCipher);
+    els.fillerMode.addEventListener("change", runCipher);
+    els.blockMode.addEventListener("change", runCipher);
+    els.message.addEventListener("input", runCipher);
+    document.getElementById("runCipher").addEventListener("click", runCipher);
+    document.getElementById("generateValid").addEventListener("click", generateValidGrille);
+    document.getElementById("clearGrille").addEventListener("click", clearGrille);
+    document.getElementById("invertGrille").addEventListener("click", invertGrille);
+    document.getElementById("swapText").addEventListener("click", () => {
+      els.message.value = els.output.textContent;
+      runCipher();
+    });
+    document.getElementById("clearText").addEventListener("click", () => {
+      els.message.value = "";
+      runCipher();
+      els.message.focus();
+    });
+
+    generateValidGrille();
+    renderDemo();
+  </script>
+</body>
+</html>
